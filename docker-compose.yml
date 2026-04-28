@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: deptmanager_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-deptmanager123}
+      MYSQL_DATABASE: deptmanager
+      MYSQL_USER: deptuser
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-deptpass456}
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: deptmanager_app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: mysql://deptuser:${MYSQL_PASSWORD:-deptpass456}@db:3306/deptmanager
+      APP_SECRET: ${APP_SECRET:-CHANGEZ_MOI_ABSOLUMENT_EN_PRODUCTION_SECRET_LONG}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
