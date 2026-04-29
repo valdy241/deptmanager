@@ -1,110 +1,101 @@
 import {
-  mysqlTable,
-  mysqlEnum,
+  pgTable,
+  pgEnum,
   serial,
   varchar,
   text,
   timestamp,
   bigint,
   boolean,
-} from "drizzle-orm/mysql-core";
+} from "drizzle-orm/pg-core";
 
-export const users = mysqlTable("users", {
+export const roleEnum = pgEnum("role", ["super_admin", "admin", "user"]);
+export const taskStatusEnum = pgEnum("task_status", ["pending", "in_progress", "completed", "cancelled"]);
+export const taskPriorityEnum = pgEnum("task_priority", ["low", "medium", "high", "urgent"]);
+export const appointmentStatusEnum = pgEnum("appointment_status", ["pending", "accepted", "declined"]);
+export const notificationTypeEnum = pgEnum("notification_type", ["task", "appointment", "document", "user", "system"]);
+
+export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  unionId: varchar("unionId", { length: 255 }).notNull().unique(),
+  unionId: varchar("union_id", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 320 }).notNull().unique(),
-  passwordHash: varchar("passwordHash", { length: 255 }),
+  passwordHash: varchar("password_hash", { length: 255 }),
   avatar: text("avatar"),
-  role: mysqlEnum("role", ["super_admin", "admin", "user"]).default("user").notNull(),
-  departmentId: bigint("departmentId", { mode: "number", unsigned: true }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt")
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
-  lastSignInAt: timestamp("lastSignInAt").defaultNow().notNull(),
+  role: roleEnum("role").default("user").notNull(),
+  departmentId: bigint("department_id", { mode: "number" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  lastSignInAt: timestamp("last_sign_in_at").defaultNow().notNull(),
 });
 
-export const departments = mysqlTable("departments", {
+export const departments = pgTable("departments", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
-  createdBy: bigint("createdBy", { mode: "number", unsigned: true }).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt")
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
+  createdBy: bigint("created_by", { mode: "number" }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const documents = mysqlTable("documents", {
+export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   content: text("content"),
-  fileUrl: varchar("fileUrl", { length: 1000 }),
+  fileUrl: varchar("file_url", { length: 1000 }),
   category: varchar("category", { length: 100 }),
-  departmentId: bigint("departmentId", { mode: "number", unsigned: true }),
-  createdBy: bigint("createdBy", { mode: "number", unsigned: true }).notNull(),
-  isPublic: boolean("isPublic").default(false).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt")
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
+  departmentId: bigint("department_id", { mode: "number" }),
+  createdBy: bigint("created_by", { mode: "number" }).notNull(),
+  isPublic: boolean("is_public").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const tasks = mysqlTable("tasks", {
+export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  status: mysqlEnum("status", ["pending", "in_progress", "completed", "cancelled"]).default("pending").notNull(),
-  priority: mysqlEnum("priority", ["low", "medium", "high", "urgent"]).default("medium").notNull(),
-  createdBy: bigint("createdBy", { mode: "number", unsigned: true }).notNull(),
-  assignedTo: bigint("assignedTo", { mode: "number", unsigned: true }),
-  dueDate: timestamp("dueDate"),
-  completedAt: timestamp("completedAt"),
-  departmentId: bigint("departmentId", { mode: "number", unsigned: true }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt")
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
+  status: taskStatusEnum("status").default("pending").notNull(),
+  priority: taskPriorityEnum("priority").default("medium").notNull(),
+  createdBy: bigint("created_by", { mode: "number" }).notNull(),
+  assignedTo: bigint("assigned_to", { mode: "number" }),
+  dueDate: timestamp("due_date"),
+  completedAt: timestamp("completed_at"),
+  departmentId: bigint("department_id", { mode: "number" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const appointments = mysqlTable("appointments", {
+export const appointments = pgTable("appointments", {
   id: serial("id").primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  startTime: timestamp("startTime").notNull(),
-  endTime: timestamp("endTime").notNull(),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
   location: varchar("location", { length: 255 }),
-  createdBy: bigint("createdBy", { mode: "number", unsigned: true }).notNull(),
-  departmentId: bigint("departmentId", { mode: "number", unsigned: true }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt")
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
+  createdBy: bigint("created_by", { mode: "number" }).notNull(),
+  departmentId: bigint("department_id", { mode: "number" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const appointmentParticipants = mysqlTable("appointmentParticipants", {
+export const appointmentParticipants = pgTable("appointment_participants", {
   id: serial("id").primaryKey(),
-  appointmentId: bigint("appointmentId", { mode: "number", unsigned: true }).notNull(),
-  userId: bigint("userId", { mode: "number", unsigned: true }).notNull(),
-  status: mysqlEnum("status", ["pending", "accepted", "declined"]).default("pending").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  appointmentId: bigint("appointment_id", { mode: "number" }).notNull(),
+  userId: bigint("user_id", { mode: "number" }).notNull(),
+  status: appointmentStatusEnum("status").default("pending").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const notifications = mysqlTable("notifications", {
+export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
-  userId: bigint("userId", { mode: "number", unsigned: true }).notNull(),
-  type: mysqlEnum("type", ["task", "appointment", "document", "user", "system"]).notNull(),
+  userId: bigint("user_id", { mode: "number" }).notNull(),
+  type: notificationTypeEnum("type").notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   message: text("message").notNull(),
-  isRead: boolean("isRead").default(false).notNull(),
-  relatedId: bigint("relatedId", { mode: "number", unsigned: true }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  isRead: boolean("is_read").default(false).notNull(),
+  relatedId: bigint("related_id", { mode: "number" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export type User = typeof users.$inferSelect;
